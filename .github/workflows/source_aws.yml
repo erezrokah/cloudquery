@@ -21,6 +21,12 @@ jobs:
         working-directory: ./plugins/source/aws
     steps:
       - uses: actions/checkout@v3
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'cq-bot'
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GH_CQ_BOT }}
+      - uses: actions/checkout@v3
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'cq-bot')
         with:
           fetch-depth: 2
       - name: Set up Go 1.x
@@ -41,18 +47,23 @@ jobs:
         run: go build .
       - name: Test
         run: make test
-      - name: gen-docs
-        if: github.event_name == 'pull_request'
-        run: make gen-docs
-      - name: Fail if docs are changed
-        if: github.event_name == 'pull_request'
-        run: test "$(git status -s ./docs/tables | wc -l)" -eq 0
       - name: gen-code
         if: github.event_name == 'pull_request'
         run: make gen-code
       - name: Fail if code generation changed services
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'cq-bot'
         run: test "$(git status -s ./resources/services | wc -l)" -eq 0
+      - name: gen-docs
+        if: github.event_name == 'pull_request'
+        run: make gen-docs
+      - name: Fail if docs are changed
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'cq-bot'
+        run: test "$(git status -s ./docs/tables | wc -l)" -eq 0
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'cq-bot'
+        with:
+          commit_message: "chore: Update code and docs"
+          branch: ${{ github.event.client_payload.pull_request.head.ref }}
   validate-release:
     runs-on: ubuntu-latest
     env:
