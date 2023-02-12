@@ -16,7 +16,8 @@ func TestPlugin(t *testing.T) {
 			TimePartitioning: "none",
 		},
 		destination.PluginTestSuiteTests{
-			SkipOverwrite:        true,
-			SkipMigrateOverwrite: true,
+			SkipOverwrite:             true,
+			SkipMigrateOverwrite:      true,
+			SkipMigrateOverwriteForce: true,
 		})
 }

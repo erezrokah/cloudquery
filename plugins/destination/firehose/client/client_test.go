@@ -16,12 +16,13 @@ func TestPluginJSON(t *testing.T) {
 			StreamARN: streamARN,
 		},
 		destination.PluginTestSuiteTests{
-			SkipAppend:           true,
-			SkipDeleteStale:      true,
-			SkipMigrateAppend:    true,
-			SkipOverwrite:        true,
-			SkipSecondAppend:     true,
-			SkipMigrateOverwrite: true,
+			SkipAppend:                true,
+			SkipDeleteStale:           true,
+			SkipMigrateAppend:         true,
+			SkipOverwrite:             true,
+			SkipSecondAppend:          true,
+			SkipMigrateOverwrite:      true,
+			SkipMigrateOverwriteForce: true,
 		},
 	)
 }

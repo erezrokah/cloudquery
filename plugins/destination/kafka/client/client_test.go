@@ -35,8 +35,9 @@ func TestPgPlugin(t *testing.T) {
 			},
 		},
 		destination.PluginTestSuiteTests{
-			SkipOverwrite:        true,
-			SkipMigrateAppend:    true,
-			SkipMigrateOverwrite: true,
+			SkipOverwrite:             true,
+			SkipMigrateAppend:         true,
+			SkipMigrateOverwrite:      true,
+			SkipMigrateOverwriteForce: true,
 		})
 }

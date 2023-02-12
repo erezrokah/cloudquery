@@ -16,10 +16,11 @@ func TestPluginCSV(t *testing.T) {
 			NoRotate:  true,
 		},
 		destination.PluginTestSuiteTests{
-			SkipOverwrite:        true,
-			SkipDeleteStale:      true,
-			SkipMigrateAppend:    true,
-			SkipMigrateOverwrite: true,
+			SkipOverwrite:             true,
+			SkipDeleteStale:           true,
+			SkipMigrateAppend:         true,
+			SkipMigrateOverwrite:      true,
+			SkipMigrateOverwriteForce: true,
 		},
 	)
 }
