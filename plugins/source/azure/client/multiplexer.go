@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/cloudquery/plugin-sdk/schema"
 )
 
@@ -8,9 +10,10 @@ func SubscriptionMultiplexRegisteredNamespace(table, namespace string) func(sche
 	return func(meta schema.ClientMeta) []schema.ClientMeta {
 		client := meta.(*Client)
 		var c = make([]schema.ClientMeta, 0)
-		for _, subId := range client.subscriptions {
-			if _, ok := client.registeredNamespaces[subId][namespace]; ok {
-				c = append(c, client.withSubscription(subId))
+		for i, subId := range client.subscriptions {
+			i := fmt.Sprintf("%d", i)
+			if _, ok := client.registeredNamespaces[subId+i][namespace]; ok {
+				c = append(c, client.withSubscription(subId, i))
 			} else {
 				client.Logger().Info().
 					Str("subscription_id", subId).
@@ -27,10 +30,11 @@ func SubscriptionResourceGroupMultiplexRegisteredNamespace(table string, namespa
 	return func(meta schema.ClientMeta) []schema.ClientMeta {
 		client := meta.(*Client)
 		var c = make([]schema.ClientMeta, 0)
-		for _, subId := range client.subscriptions {
-			if _, ok := client.registeredNamespaces[subId][namespace]; ok {
-				for _, rg := range client.ResourceGroups[subId] {
-					c = append(c, client.withSubscription(subId).withResourceGroup(*rg.Name))
+		for i, subId := range client.subscriptions {
+			i := fmt.Sprintf("%d", i)
+			if _, ok := client.registeredNamespaces[subId+i][namespace]; ok {
+				for _, rg := range client.ResourceGroups[subId+i] {
+					c = append(c, client.withSubscription(subId, i).withResourceGroup(*rg.Name))
 				}
 			} else {
 				client.Logger().Info().
@@ -48,7 +52,7 @@ func SubscriptionMultiplex(meta schema.ClientMeta) []schema.ClientMeta {
 	client := meta.(*Client)
 	var c = make([]schema.ClientMeta, len(client.subscriptions))
 	for i, subId := range client.subscriptions {
-		c[i] = client.withSubscription(subId)
+		c[i] = client.withSubscription(subId, fmt.Sprintf("%d", i))
 	}
 	return c
 }

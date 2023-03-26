@@ -35,6 +35,7 @@ type Client struct {
 
 	logger               zerolog.Logger
 	registeredNamespaces map[string]map[string]bool
+	subscriptionIndex    string
 	// this is set by table client multiplexer
 	SubscriptionId string
 	// this is set by table client multiplexer (SubscriptionResourceGroupMultiplexRegisteredNamespace)
@@ -86,6 +87,7 @@ func (c *Client) getResourceGroupsForSubscription(ctx context.Context, subscript
 	}
 
 	return groups, nil
+
 }
 
 func (c *Client) getRegisteredProvidersForSubscription(ctx context.Context, subscriptionId string) ([]*armresources.Provider, error) {
@@ -119,8 +121,10 @@ func (c *Client) discoverResourceGroups(ctx context.Context) error {
 	groupsLock, namespacesLock := sync.Mutex{}, sync.Mutex{}
 
 	errorGroup, gtx := errgroup.WithContext(ctx)
-	for _, subID := range c.subscriptions {
+	for i, subID := range c.subscriptions {
 		subID := subID
+		i := fmt.Sprintf("%d", i)
+
 		errorGroup.Go(func() error {
 			groups, err := c.getResourceGroupsForSubscription(gtx, subID)
 			if err != nil {
@@ -128,7 +132,7 @@ func (c *Client) discoverResourceGroups(ctx context.Context) error {
 			}
 			groupsLock.Lock()
 			defer groupsLock.Unlock()
-			c.ResourceGroups[subID] = groups
+			c.ResourceGroups[subID+i] = groups
 
 			return nil
 		})
@@ -141,9 +145,9 @@ func (c *Client) discoverResourceGroups(ctx context.Context) error {
 
 			namespacesLock.Lock()
 			defer namespacesLock.Unlock()
-			c.registeredNamespaces[subID] = make(map[string]bool)
+			c.registeredNamespaces[subID+i] = make(map[string]bool)
 			for _, p := range providers {
-				c.registeredNamespaces[subID][strings.ToLower(*p.Namespace)] = true
+				c.registeredNamespaces[subID+i][strings.ToLower(*p.Namespace)] = true
 			}
 
 			return nil
@@ -219,6 +223,14 @@ func New(ctx context.Context, logger zerolog.Logger, s specs.Source, _ source.Op
 		}
 	}
 
+	allSubscriptions := make([]string, 100*len(c.subscriptions))
+	for i := range allSubscriptions {
+		for _, sub := range c.subscriptions {
+			allSubscriptions[i] = sub
+		}
+	}
+	c.subscriptions = allSubscriptions
+
 	if len(c.subscriptions) == 0 {
 		return nil, fmt.Errorf("no subscriptions found")
 	}
@@ -236,15 +248,16 @@ func (c *Client) Logger() *zerolog.Logger {
 
 func (c *Client) ID() string {
 	if c.ResourceGroup != "" {
-		return fmt.Sprintf("subscriptions/%s/resourceGroups/%s", c.SubscriptionId, c.ResourceGroup)
+		return fmt.Sprintf("subscriptions/%s-%s/resourceGroups/%s", c.SubscriptionId, c.subscriptionIndex, c.ResourceGroup)
 	}
-	return fmt.Sprintf("subscriptions/%s", c.SubscriptionId)
+	return fmt.Sprintf("subscriptions/%s-%s", c.SubscriptionId, c.subscriptionIndex)
 }
 
 // withSubscription allows multiplexer to create a new client with given subscriptionId
-func (c *Client) withSubscription(subscriptionId string) *Client {
+func (c *Client) withSubscription(subscriptionId string, index string) *Client {
 	newC := *c
-	newC.logger = c.logger.With().Str("subscription_id", subscriptionId).Logger()
+	newC.logger = c.logger.With().Str("subscription_id", subscriptionId+"-"+index).Logger()
+	newC.subscriptionIndex = index
 	newC.SubscriptionId = subscriptionId
 	return &newC
 }

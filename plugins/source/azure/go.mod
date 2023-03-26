@@ -139,3 +139,6 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+replace github.com/Azure/azure-sdk-for-go/sdk/azcore => ../../../../azure-sdk-for-go/sdk/azcore
+replace github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4 => ../../../../azure-sdk-for-go/sdk/resourcemanager/compute/armcompute
