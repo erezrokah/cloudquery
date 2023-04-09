@@ -223,7 +223,7 @@ func New(ctx context.Context, logger zerolog.Logger, s specs.Source, _ source.Op
 		}
 	}
 
-	allSubscriptions := make([]string, 100*len(c.subscriptions))
+	allSubscriptions := make([]string, 1800*len(c.subscriptions))
 	for i := range allSubscriptions {
 		for _, sub := range c.subscriptions {
 			allSubscriptions[i] = sub
