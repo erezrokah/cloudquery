@@ -3,7 +3,7 @@ module github.com/cloudquery/cloudquery/plugins/destination/file
 go 1.20
 
 require (
-	github.com/apache/arrow/go/v14 v14.0.0-20230826001106-a069d71cc1bcd
+	github.com/apache/arrow/go/v14 v14.0.0-20230901082833-e883f893adec
 	github.com/cloudquery/filetypes/v4 v4.1.8
 	github.com/cloudquery/plugin-sdk/v4 v4.6.0
 	github.com/google/go-cmp v0.5.9
