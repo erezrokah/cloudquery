@@ -4,9 +4,25 @@ const matter = require("gray-matter");
 const title = require("title");
 const pluginTitle = (plugin) => title(plugin.replace(/-/g, " "));
 
-const getData = (pluginsDir, plugin) => {
+
+const tryReadPaths = (paths) => {
+  for (const p of paths) {
+    try {
+      return fs.readFileSync(p);
+    } catch (e) {
+      if (p === paths[paths.length - 1]) {
+        throw e;
+      }
+    }
+  }
+};
+
+const getData = (plugin, type) => {
   try {
-    const overviewFile = fs.readFileSync(`${pluginsDir}/${plugin}/overview.md`);
+    const typeSingular = type === "sources" ? "source" : "destination";
+    const oldsDocsPath = path.resolve(process.cwd(), `pages/docs/plugins/${type}/${plugin}/overview.md`);
+    const newDocsPath = path.resolve(process.cwd(), `../plugins/${typeSingular}/${plugin}/docs/overview.md`);
+    const overviewFile = tryReadPaths([oldsDocsPath, newDocsPath]);
     return {
       id: plugin,
       name: pluginTitle(plugin),
@@ -28,7 +44,7 @@ const getPluginsData = (type) => {
 
   const withData = plugins.map((plugin) => [
     plugin,
-    getData(pluginsDir, plugin),
+    getData(plugin, type),
   ]);
   withData.sort((a, b) => a[1].name.localeCompare(b[1].name));
   return Object.fromEntries(withData);
